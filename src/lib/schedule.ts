@@ -1,3 +1,5 @@
+import { hash } from "./random";
+
 type Item<TRecord> = TRecord[keyof TRecord];
 
 export const repeat = {
@@ -89,20 +91,21 @@ function score(person: string, task: Task, counters: Counters) {
         timesDone *= 2;
     }
 
-    return (timesDone - weeksSinceDone * weeksSinceDone) * weeksSinceDoneAnyTask;
+    return (timesDone - weeksSinceDone * weeksSinceDone) * (weeksSinceDoneAnyTask + 1);
 }
 
 function randomIntFromCounters(counters: Counters) {
-    let sum = 7;
+    let numbers = [];
 
     for (const task in counters) {
         for (const person in counters[task]) {
             const { timesDone, weeksSinceDone } = counters[task][person];
-            sum += timesDone % weeksSinceDone;
+            numbers.push(timesDone);
+            numbers.push(weeksSinceDone);
         }
     }
 
-    return sum;
+    return hash(numbers);
 }
 
 const min = (a: number, b: number) => a < b ? a : b;
