@@ -67,6 +67,12 @@ export function nextWeekTasks(people: readonly string[], tasks: readonly Task[],
         }
     }
 
+    updateCounters(assignments, counters);
+
+    return assignments;
+}
+
+export function updateCounters(assignments: Record<string, string[]>, counters: Counters) {
     for (const task in assignments) {
         for (const person of assignments[task]) {
             const counter = counters[task][person];
@@ -74,8 +80,6 @@ export function nextWeekTasks(people: readonly string[], tasks: readonly Task[],
             counter.timesDone++;
         }
     }
-
-    return assignments;
 }
 
 function score(person: string, task: Task, counters: Counters) {

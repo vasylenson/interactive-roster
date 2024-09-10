@@ -1,5 +1,5 @@
 import { createSignal, For, Match, Switch } from "solid-js";
-import { initCounters, nextWeekTasks, repeat, Task } from "~/lib/schedule";
+import { initCounters, nextWeekTasks, repeat, Task, updateCounters } from "~/lib/schedule";
 
 const tasks = [
   { name: 'Living Room', people: 2, kind: repeat.weekly },
@@ -13,14 +13,14 @@ const tasks = [
 
 const people = [
   'Inês',
-  'Gabrielle',
+  'Gabriele',
   'Roos',
   'Olga',
   'Marko',
   'Mony',
   'Marlou',
   'Estephania',
-  'Daan',
+  'Dimitra',
   'Irene',
   'Kristofers',
   'Alex',
@@ -30,8 +30,22 @@ const people = [
 
 function* generateSchedule(numWeeks: number, people: readonly string[], tasks: Task[]) {
   let counters = initCounters(people, names(tasks));
-  for (let i = 0; i < numWeeks; i++) {
-    const assignment = nextWeekTasks(people, i % 4 === 0 ? tasks : weekly(tasks), counters);
+  const a1: Record<string, string[]> = {
+    'Living Room': ['Marko', 'Olga'],
+    'Toilets': ['Dimitra'],
+    'Bathroom': ['Gabriele'],
+    'Showers': ['Kristofers'],
+    'Hallways': ['Inês'],
+    'Kitchen': ['Marlou', 'Irene', 'Estephania'],
+    'Laundry Room': ['Alex'],
+  };
+
+  yield tasks.map(({ name }) => a1[name]);
+  updateCounters(a1, counters);
+
+  for (let i = 1; i < numWeeks; i++) {
+    let p = i == 1 ? people.filter((name) => name !== 'Roos') : people;
+    const assignment = nextWeekTasks(p, i % 4 === 0 ? tasks : weekly(tasks), counters);
     yield tasks.map(({ name }) => assignment[name] ?? []);//.concat([[JSON.stringify(counters)]]);
   }
 }
