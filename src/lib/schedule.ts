@@ -1,4 +1,4 @@
-import { hash } from "./random";
+import { hash, sample } from "./random";
 
 type Item<TRecord> = TRecord[keyof TRecord];
 
@@ -11,21 +11,21 @@ export const repeat = {
 export type Repeat = Item<typeof repeat>;
 
 export type Task = {
-    name: string;
+    name: TaskName;
     people: number;
     kind: Repeat;
-};
-
-type Week = {
-    /** Monday of this week. */
-    date: Date;
-    tasks: Record<string, string[] | null>;
 };
 
 export type Counter = {
     timesDone: number;
     weeksSinceDone: number;
 };
+
+const BrandPerson = Symbol('Brand: person');
+export type Person = string & { _brand: typeof BrandPerson };
+
+const BrandTaskName = Symbol('Brand: task name');
+export type TaskName = string & { _brand: typeof BrandTaskName };
 
 type Counters = Record<string, Record<string, Counter>>;
 
@@ -50,49 +50,63 @@ export function initCounters(people: readonly string[], tasks: readonly string[]
  * @param counters are mutated
  * @returns the record of tasks to arrays of assigned people.
  */
-export function nextWeekTasks(people: readonly string[], tasks: readonly Task[], counters: Counters) {
-    const availablePeople = new Set(people);
-    const assignments = {} as Record<string, string[]>;
-
+export function nextWeekTasks(people: readonly Person[], tasks: readonly Task[], counters: Counters, heuristic: Heuristic = score) {
+    const candidates: Record<TaskName, [Person, number][]> = {};
     for (const task of tasks) {
-        const candidates = Array.from(availablePeople).map((person) => [person, score(person, task, counters)] as const)
-            .sort(([_1, s1], [_2, s2]) => s1 - s2)
-            .map(([person]) => person)
-            .slice(0, task.people + 0 /** TODO: refactor to have a parameterized random spread */);
+        candidates[task.name] = Array.from(people)
+            .map((person) => [person, heuristic(person, task, counters)] as [Person, number])
+            .sort(([_1, score1], [_2, score2]) => score1 - score2)
+            .slice(0, task.people + 3);
+    }
 
-        // const seed = randomIntFromCounters(counters);
-        // candidates.splice(seed % candidates.length, 1);
-        assignments[task.name] = candidates;
+    function* makeAssignments(current: Record<TaskName, Person[]> = {}, unassigned: Set<Person> = new Set()) {
         
-        for (const candidate of candidates) {
-            availablePeople.delete(candidate);
-        }
     }
 
-    for (const task in assignments) {
-        for (const person of assignments[task]) {
-            const counter = counters[task][person];
-            counter.weeksSinceDone = 1;
-            counter.timesDone++;
-        }
+    const assignments: [Record<TaskName, Person[]>, number][] = [];
+    for (const task of tasks) {
+        candidates[task.name];
     }
 
-    return assignments;
+    // console.log({ assignments });
+
+    return assignments[0][0];
 }
 
-function score(person: string, task: Task, counters: Counters) {
+
+/**
+ * A function that assigns a score to a person and a task based on counters.
+ * The higher the score the less likely the person will have to do the task.
+ */
+type Heuristic = (person: string, task: Task, counters: Counters) => number;
+
+
+const score: Heuristic = (person, task, counters) => {
     let { timesDone, weeksSinceDone } = counters[task.name][person];
     const weeksSinceDoneAnyTask = Object.values(counters)
         .map((counter) => counter[person].weeksSinceDone)
         .reduce(min);
 
+    const numPeople = Object.values(counters[task.name]).length;
+
+    const timeTaskDoneAverage = Object.values(counters[task.name])
+        .map(({ timesDone }) => timesDone)
+        .reduce(add) / numPeople;
+
+    timesDone -= timeTaskDoneAverage;
+
     if (task.kind === repeat.monthly) {
-        weeksSinceDone /= 8;
+        weeksSinceDone /= 4;
         timesDone *= 2;
     }
 
-    return (timesDone - weeksSinceDone * weeksSinceDone) * (weeksSinceDoneAnyTask + 1);
-}
+    const timesDoneMultiplier = timesDone >= 2 ? 0 : (8 - timesDone * 4);
+
+    console.log(`Times done multiplier ${timesDoneMultiplier} for ${task.name} for ${person}`)
+    const anyTaskMultiplier = weeksSinceDone < 2 ? 0.3 : (weeksSinceDone / 4);
+
+    return 1 + 10 * weeksSinceDone * timesDoneMultiplier * anyTaskMultiplier;
+};
 
 function randomIntFromCounters(counters: Counters) {
     let numbers = [];
@@ -109,3 +123,5 @@ function randomIntFromCounters(counters: Counters) {
 }
 
 const min = (a: number, b: number) => a < b ? a : b;
+
+const add = (a: number, b: number) => a + b;

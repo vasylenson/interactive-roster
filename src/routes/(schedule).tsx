@@ -1,5 +1,6 @@
 import { createSignal, For, Match, Switch } from "solid-js";
-import { initCounters, nextWeekTasks, repeat, Task } from "~/lib/schedule";
+import { cumulative, normalize, random } from "~/lib/random";
+import { initCounters, nextWeekTasks, Person, repeat, Task } from "~/lib/schedule";
 
 const tasks = [
   { name: 'Living Room', people: 2, kind: repeat.weekly },
@@ -9,7 +10,7 @@ const tasks = [
   { name: 'Hallways', people: 1, kind: repeat.weeklyWithMonthly },
   { name: 'Kitchen', people: 3, kind: repeat.monthly },
   { name: 'Laundry Room', people: 1, kind: repeat.monthly },
-];
+] as Task[];
 
 const people = [
   'Inês',
@@ -17,18 +18,18 @@ const people = [
   'Roos',
   'Olga',
   'Marko',
-  'Mony',
+  // 'Mony',
   'Marlou',
   'Estephania',
-  'Daan',
+  'Dimitra',
   'Irene',
   'Kristofers',
   'Alex',
   'Michelle',
   'Diego',
-] as const;
+] as Person[];
 
-function* generateSchedule(numWeeks: number, people: readonly string[], tasks: Task[]) {
+function* generateSchedule(numWeeks: number, people: readonly Person[], tasks: Task[]) {
   let counters = initCounters(people, names(tasks));
   for (let i = 0; i < numWeeks; i++) {
     const assignment = nextWeekTasks(people, i % 4 === 0 ? tasks : weekly(tasks), counters);
@@ -56,6 +57,12 @@ export default function Home() {
     setRows(null);
   };
 
+  const list = [1, 2, 3, 4, 5];
+  normalize(list);
+  const point = random();
+  const c = cumulative(list);
+  const index = c.findIndex((p) => p > point);
+
   return (
     <div class="ml-4">
       <h1>Schedule</h1>
@@ -68,6 +75,11 @@ export default function Home() {
             onInput={(e) => setWeeks(Number.parseInt(e.target.value))}
           />
           <button class="m-2 p-2 rounded bg-blue-800 text-white" onClick={generate}>Generate</button>
+          <pre>{JSON.stringify({ point })}</pre>
+          <pre>{JSON.stringify({ index })}</pre>
+          <pre>{JSON.stringify({ list })}</pre>
+          <pre>{JSON.stringify({ c })}</pre>
+          <pre>{JSON.stringify([1, 2, 3].reduce((a, b) => a + b))}</pre>
         </Match>
         <Match when={rows() !== null}>
           <TaskTable
