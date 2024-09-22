@@ -44,7 +44,7 @@ function* generateSchedule(numWeeks: number, people: readonly string[], tasks: T
   updateCounters(a1, counters);
 
   for (let i = 1; i < numWeeks; i++) {
-    let p = i == 1 ? people.filter((name) => name !== 'Roos') : people;
+    let p = i > 0 ? people.filter((name) => name !== 'Roos') : people;
     const assignment = nextWeekTasks(p, i % 4 === 0 ? tasks : weekly(tasks), counters);
     yield tasks.map(({ name }) => assignment[name] ?? []);//.concat([[JSON.stringify(counters)]]);
   }
