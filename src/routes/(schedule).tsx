@@ -40,8 +40,27 @@ function* generateSchedule(numWeeks: number, people: readonly string[], tasks: T
     'Laundry Room': ['Alex'],
   };
 
-  yield tasks.map(({ name }) => a1[name]);
-  updateCounters(a1, counters);
+  const a2: Record<string, string[]> = {
+    'Living Room': ['Mony', 'Michelle'],
+    'Toilets': ['Diego'],
+    'Bathroom': ['Inês'],
+    'Showers': ['Gabriele'],
+    'Hallways': ['Olga'],
+  };
+
+  const a3: Record<string, string[]> = {
+    'Living Room': ['Inês', 'Gabriele'],
+    'Toilets': ['Olga'],
+    'Bathroom': ['Marko'],
+    'Showers': ['Mony'],
+    'Hallways': ['Marlou'],
+  };
+
+  for (const a of [a1, a2, a3]) {
+    yield tasks.map(({ name }) => a[name] ?? []);
+    updateCounters(a, counters);
+  }
+
 
   for (let i = 1; i < numWeeks; i++) {
     let p = i > 0 ? people.filter((name) => name !== 'Roos') : people;
