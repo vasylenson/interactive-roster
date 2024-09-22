@@ -1,4 +1,6 @@
-import { hash, sample } from "./random";
+import { hash, sample, subsetsOf } from "./random";
+
+export type Assignment = Record<TaskName, Person[]>;
 
 type Item<TRecord> = TRecord[keyof TRecord];
 
@@ -59,8 +61,26 @@ export function nextWeekTasks(people: readonly Person[], tasks: readonly Task[],
             .slice(0, task.people + 3);
     }
 
-    function* makeAssignments(current: Record<TaskName, Person[]> = {}, unassigned: Set<Person> = new Set()) {
-        
+    function scorePeopleCombination(people: Person[]) {
+        return 0;
+    }
+
+    function* makeAssignments(current: Assignment, currentScore: number, tasks: Task[], people: Set<Person>): Generator<Assignment> {
+        if (tasks.length === 0) {
+            yield current;
+            return;
+        }
+
+        const [task, ...remainingTasks] = tasks;
+        for (const peopleAndScores of subsetsOf(task.people, candidates[task.name])) {
+            const assignees = peopleAndScores.map(left);
+            const score = peopleAndScores.map(right).reduce(add) + scorePeopleCombination(assignees);
+
+            const next = {...current, [task.name]: assignees};
+            const remainingPeople = people.difference(new Set(assignees));
+
+            yield* makeAssignments(next, currentScore + score, remainingTasks, remainingPeople)
+        }
     }
 
     const assignments: [Record<TaskName, Person[]>, number][] = [];
@@ -125,3 +145,7 @@ function randomIntFromCounters(counters: Counters) {
 const min = (a: number, b: number) => a < b ? a : b;
 
 const add = (a: number, b: number) => a + b;
+
+const left = <T>([l, _]: [T, unknown]) => l;
+
+const right = <T>([_, r]: [unknown, T]) => r;

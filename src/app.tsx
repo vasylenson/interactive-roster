@@ -5,9 +5,9 @@ import MainLayout from "./components/MainLayout";
 
 export default function App() {
   return (
-    // <main>hello</main>
-    <Router root={MainLayout}>
-      <FileRoutes />
-    </Router>
+    <main>hello</main>
+    // <Router root={MainLayout}>
+    //   <FileRoutes />
+    // </Router>
   );
 }

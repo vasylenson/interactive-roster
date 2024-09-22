@@ -74,7 +74,7 @@ export function hash(nums: Iterable<number>) {
     return hash >>> 0;
 }
 
-export function* subsetOf<T>(num: number, arr: T[]) {
+export function* subsetsOf<T>(num: number, arr: T[]) {
     function* generateSubset(currentSubset: T[], startIndex: number): Generator<T[]> {
         if (currentSubset.length === num) {
             yield currentSubset;
