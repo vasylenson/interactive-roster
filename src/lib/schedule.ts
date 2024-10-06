@@ -1,3 +1,5 @@
+import { permute } from "./random";
+
 type Item<TRecord> = TRecord[keyof TRecord];
 
 export const repeat = {
@@ -52,14 +54,13 @@ export function nextWeekTasks(people: readonly string[], tasks: readonly Task[],
     const availablePeople = new Set(people);
     const assignments = {} as Record<string, string[]>;
 
-    for (const task of tasks) {
-        const candidates = Array.from(availablePeople).map((person) => [person, score(person, task, counters)] as const)
+    for (const task of permute(tasks)) {
+        let candidates = permute(Array.from(availablePeople)).map((person) => [person, score(person, task, counters)] as const)
             .sort(([_1, s1], [_2, s2]) => s1 - s2)
             .map(([person]) => person)
-            .slice(0, task.people + 0 /** TODO: refactor to have a parameterized random spread */);
+            .slice(0, task.people + 2 /** TODO: refactor to have a parameterized random spread */);
 
-        // const seed = randomIntFromCounters(counters);
-        // candidates.splice(seed % candidates.length, 1);
+        candidates = permute(candidates).slice(0, task.people)
         assignments[task.name] = candidates;
         
         for (const candidate of candidates) {
