@@ -4,6 +4,11 @@ export function seed(value: number) {
     _seed = value;
 }
 
+/**
+ * Create a new list of given elements in random order.
+ * 
+ * @param items elements to permuted
+ */
 export function permute<T>(items: readonly T[]) {
     return sample(items.length, items.map((item) => [item, 1 / items.length]));
 }

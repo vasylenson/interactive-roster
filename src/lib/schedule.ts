@@ -1,6 +1,6 @@
-import { hash, sample, subsetsOf } from "./random";
+import { permute, subsetsOf } from "./random";
 
-export type Assignment = Record<TaskName, Person[]>;
+export type Assignment = { [task: TaskName]: Person[] };
 
 type Item<TRecord> = TRecord[keyof TRecord];
 
@@ -29,9 +29,9 @@ export type Person = string & { _brand: typeof BrandPerson };
 const BrandTaskName = Symbol('Brand: task name');
 export type TaskName = string & { _brand: typeof BrandTaskName };
 
-type Counters = Record<string, Record<string, Counter>>;
+type Counters = Record<TaskName, Record<Person, Counter>>;
 
-export function initCounters(people: readonly string[], tasks: readonly string[]) {
+export function initCounters(people: readonly Person[], tasks: readonly TaskName[]) {
     const counters: Counters = {};
     for (const taskName of tasks) {
         counters[taskName] = {};
@@ -52,45 +52,90 @@ export function initCounters(people: readonly string[], tasks: readonly string[]
  * @param counters are mutated
  * @returns the record of tasks to arrays of assigned people.
  */
-export function nextWeekTasks(people: readonly Person[], tasks: readonly Task[], counters: Counters, heuristic: Heuristic = score) {
-    const candidates: Record<TaskName, [Person, number][]> = {};
-    for (const task of tasks) {
-        candidates[task.name] = Array.from(people)
-            .map((person) => [person, heuristic(person, task, counters)] as [Person, number])
-            .sort(([_1, score1], [_2, score2]) => score1 - score2)
-            .slice(0, task.people + 3);
+export function nextWeekTasks(
+    people: readonly Person[],
+    tasks: readonly Task[],
+    counters: Counters,
+    heuristic: Heuristic = score,
+    scoreCombo: ScoreCombo = scorePeopleCombination,
+) {
+    function getCandidates(spread: number = 3) {
+        const candidates: Record<TaskName, [Person, number][]> = {};
+        for (const task of tasks) {
+            candidates[task.name] = Array.from(permute(people))
+                .map((person) => [person, heuristic(person, task, counters)] as [Person, number])
+                .sort(([_1, score1], [_2, score2]) => score1 - score2)
+                .slice(0, task.people + 4);
+        }
+        return candidates;
     }
 
-    function scorePeopleCombination(people: Person[]) {
-        return 0;
-    }
+    for (const spread of [2, 5, 7]) {
+        const candidates = getCandidates(spread);
+        function* makeAssignments(
+            current: Assignment,
+            currentScore: number,
+            tasks: readonly Task[],
+            people: Set<Person>
+        ): Generator<[Assignment, number]> {
+            if (tasks.length === 0) {
+                yield [current, currentScore] as const;
+                return;
+            }
 
-    function* makeAssignments(current: Assignment, currentScore: number, tasks: Task[], people: Set<Person>): Generator<Assignment> {
-        if (tasks.length === 0) {
-            yield current;
-            return;
+            const [task, ...remainingTasks] = tasks;
+            for (const peopleAndScores of subsetsOf(task.people, candidates[task.name])) {
+                const assignees = peopleAndScores.map(left);
+                const score = peopleAndScores.map(right).reduce(add) + scoreCombo(assignees);
+
+                const assigneesSet = new Set(assignees);
+                if (!people.isSupersetOf(assigneesSet)) continue; // if some people are already assigned 
+
+                const next = {...current, [task.name]: assignees};
+                const remainingPeople = people.difference(assigneesSet);
+
+                yield* makeAssignments(next, currentScore + score, remainingTasks, remainingPeople)
+            }
         }
 
-        const [task, ...remainingTasks] = tasks;
-        for (const peopleAndScores of subsetsOf(task.people, candidates[task.name])) {
-            const assignees = peopleAndScores.map(left);
-            const score = peopleAndScores.map(right).reduce(add) + scorePeopleCombination(assignees);
+        let minScore = Infinity;
+        let bestAssignment = null;
+        let count = 0;
+        for (const [assignment, score] of makeAssignments({}, 0, tasks, new Set(people))) {
+            if (score < minScore) {
+                minScore = score;
+                bestAssignment = assignment;
+            }
+            count++;
+        }
 
-            const next = {...current, [task.name]: assignees};
-            const remainingPeople = people.difference(new Set(assignees));
+        console.log({ count });
+        
+        if (bestAssignment === null) continue;
 
-            yield* makeAssignments(next, currentScore + score, remainingTasks, remainingPeople)
+        updateCounters(counters, bestAssignment);
+
+        return bestAssignment;
+    }
+
+    throw new Error("Could not choose anything");
+}
+
+function updateCounters(counters: Counters, assignment: Assignment) {
+    for (const [taskName, people] of Object.entries(assignment)) {
+        for (const person of people) {
+            const counter = counters[taskName as TaskName][person];
+            counter.timesDone++;
+            counter.weeksSinceDone = 0;
         }
     }
 
-    const assignments: [Record<TaskName, Person[]>, number][] = [];
-    for (const task of tasks) {
-        candidates[task.name];
+    // pass a week for all counters
+    for (const taskCounters of Object.values(counters)) {
+        for (const counter of Object.values(taskCounters)) {
+            counter.weeksSinceDone++;
+        }
     }
-
-    // console.log({ assignments });
-
-    return assignments[0][0];
 }
 
 
@@ -98,7 +143,7 @@ export function nextWeekTasks(people: readonly Person[], tasks: readonly Task[],
  * A function that assigns a score to a person and a task based on counters.
  * The higher the score the less likely the person will have to do the task.
  */
-type Heuristic = (person: string, task: Task, counters: Counters) => number;
+type Heuristic = (person: Person, task: Task, counters: Counters) => number;
 
 
 const score: Heuristic = (person, task, counters) => {
@@ -108,7 +153,6 @@ const score: Heuristic = (person, task, counters) => {
         .reduce(min);
 
     const numPeople = Object.values(counters[task.name]).length;
-
     const timeTaskDoneAverage = Object.values(counters[task.name])
         .map(({ timesDone }) => timesDone)
         .reduce(add) / numPeople;
@@ -120,27 +164,18 @@ const score: Heuristic = (person, task, counters) => {
         timesDone *= 2;
     }
 
-    const timesDoneMultiplier = timesDone >= 2 ? 0 : (8 - timesDone * 4);
+    const a = weeksSinceDone < 7 ? 5 : 2 / weeksSinceDone;
+    const b = timesDone < 5 ? 3 : 1 / timesDone;
+    const c = weeksSinceDoneAnyTask < 2 ? 10 : weeksSinceDoneAnyTask < 3 ? 3 : 1 / weeksSinceDoneAnyTask;
 
-    console.log(`Times done multiplier ${timesDoneMultiplier} for ${task.name} for ${person}`)
-    const anyTaskMultiplier = weeksSinceDone < 2 ? 0.3 : (weeksSinceDone / 4);
+    // console.log({ score: 1 + a * b + c });
 
-    return 1 + 10 * weeksSinceDone * timesDoneMultiplier * anyTaskMultiplier;
+    return 1 + a * b * c;
 };
 
-function randomIntFromCounters(counters: Counters) {
-    let numbers = [];
+type ScoreCombo = (people: Person[]) => number;
 
-    for (const task in counters) {
-        for (const person in counters[task]) {
-            const { timesDone, weeksSinceDone } = counters[task][person];
-            numbers.push(timesDone);
-            numbers.push(weeksSinceDone);
-        }
-    }
-
-    return hash(numbers);
-}
+const scorePeopleCombination: ScoreCombo = (_) => 0;
 
 const min = (a: number, b: number) => a < b ? a : b;
 
