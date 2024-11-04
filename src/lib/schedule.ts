@@ -1,6 +1,6 @@
 import { permute, subsetsOf } from "./random";
 
-export type Assignment = { [task: TaskName]: Person[] };
+export type Assignment = Record<TaskName, Person[]>;
 
 type Item<TRecord> = TRecord[keyof TRecord];
 
@@ -65,13 +65,14 @@ export function nextWeekTasks(
             candidates[task.name] = Array.from(permute(people))
                 .map((person) => [person, heuristic(person, task, counters)] as [Person, number])
                 .sort(([_1, score1], [_2, score2]) => score1 - score2)
-                .slice(0, task.people + 4);
+                .slice(0, task.people + spread);
         }
         return candidates;
     }
 
-    for (const spread of [2, 5, 7]) {
+    for (const spread of [3, 5, 7]) {
         const candidates = getCandidates(spread);
+        // console.log({ candidates });
         function* makeAssignments(
             current: Assignment,
             currentScore: number,
@@ -109,7 +110,7 @@ export function nextWeekTasks(
             count++;
         }
 
-        console.log({ count });
+        // console.log({ count });
         
         if (bestAssignment === null) continue;
 
@@ -121,10 +122,15 @@ export function nextWeekTasks(
     throw new Error("Could not choose anything");
 }
 
-function updateCounters(counters: Counters, assignment: Assignment) {
+export function updateCounters(counters: Counters, assignment: Assignment) {
     for (const [taskName, people] of Object.entries(assignment)) {
         for (const person of people) {
             const counter = counters[taskName as TaskName][person];
+
+            if (!counter) {
+                console.error(`No counter for ${taskName} by ${person}, skipping`);
+                continue;
+            }
             counter.timesDone++;
             counter.weeksSinceDone = 0;
         }
