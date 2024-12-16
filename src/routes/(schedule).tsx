@@ -1,7 +1,7 @@
 import { createSignal, For, Match, Switch } from "solid-js";
 import { addWeek, isStartOfMonth } from "~/lib/date";
 import { seed } from "~/lib/random";
-import { Assignment, initCounters, nextWeekTasks, Person, repeat, Task, TaskName, updateCounters } from "~/lib/schedule";
+import { addPerson, Assignment, initCounters, nextWeekTasks, Person, repeat, Task, TaskName, updateCounters } from "~/lib/schedule";
 
 const lockedSchedule = [
   {
@@ -78,7 +78,7 @@ const people = [
   'Diego',
 ] as Person[];
 
-function* generateSchedule(numWeeks: number, people: readonly Person[], tasks: Task[]) {
+function* generateSchedule(numWeeks: number, people: Person[], tasks: Task[]) {
   let counters = initCounters(people, names(tasks));
   let date = new Date('09-02-2024');
   console.log({ date });
@@ -93,8 +93,16 @@ function* generateSchedule(numWeeks: number, people: readonly Person[], tasks: T
 
   for (let i = lockedSchedule.length; i < numWeeks; i++) {
     try {
+      if (date.toString() === (new Date('12-02-2024')).toString()) {
+        const ivo = "Ivo" as Person
+        people = people.filter(person => person != 'Marlou')
+        people.push(ivo)
+        addPerson(ivo, counters);
+      }
+
       let pool = i > 5 && i < 10 ? people.filter(person => person != 'Alex') : people;
       pool = i == 6 ? exclude(pool, ['Estephania'] as Person[]) : pool;
+
       const assignment = nextWeekTasks(pool, isStartOfMonth(date) ? tasks : weekly(tasks), counters);
       yield [new Date(date), tasks.map(({ name }) => assignment[name] ?? [])] as [Date, string[][]];
       addWeek(date);

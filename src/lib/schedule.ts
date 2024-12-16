@@ -144,6 +144,25 @@ export function updateCounters(counters: Counters, assignment: Assignment) {
     }
 }
 
+export function addPerson(person: Person, counters: Counters) {
+    for (const [taskName, taskCounters] of Object.entries(counters)) {
+        const individualCounters = Object.values(taskCounters);
+        const numPeople = individualCounters.length;
+        
+        let timesDone = 0
+        for (const counter of individualCounters) {
+            timesDone += counter.timesDone;
+        }
+
+        timesDone = Math.floor(timesDone / numPeople);
+
+        counters[taskName as TaskName][person] = {
+            timesDone,
+            weeksSinceDone: numPeople,
+        }
+    } 
+}
+
 
 /**
  * A function that assigns a score to a person and a task based on counters.
@@ -181,7 +200,17 @@ const score: Heuristic = (person, task, counters) => {
 
 type ScoreCombo = (people: Person[]) => number;
 
-const scorePeopleCombination: ScoreCombo = (_) => 0;
+const scorePeopleCombination: ScoreCombo = (people) => {
+    const not = (one: string, other: string) => 
+        people.includes(one as Person) && people.includes(other as Person) ? 100000 : 0;
+
+    return not('Marko', 'Diego') 
+        + not('Marko', 'Marlou')
+        + not('Marko', 'Michelle')
+        + not('Marko', 'Estephania')
+        + not('Olga', 'Marlou')
+        + not('Olga', 'Michelle')
+};
 
 const min = (a: number, b: number) => a < b ? a : b;
 
