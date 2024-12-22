@@ -33,7 +33,11 @@ export class Schedule {
      * and generating new weeks on demand indefinitely.
      */
     assignments() {
-        const generator = function* (lockedSchedule: Assignment[], people: Person[], tasks: Task[]) {
+        const generator = function* (
+            lockedSchedule: Assignment[],
+            people: Person[],
+            tasks: Task[]
+        ) {
             let counters = initCounters(people, names(tasks));
             let date = new Date('09-02-2024');
             console.log({ date });

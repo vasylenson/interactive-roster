@@ -1,21 +1,20 @@
 {
-  "name": "example-with-tailwindcss",
+  "name": "interactive-roster",
   "type": "module",
+  "version": "0.0.1",
   "scripts": {
-    "dev": "vinxi dev",
-    "build": "vinxi build",
-    "start": "vinxi start"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
   },
   "dependencies": {
-    "@solidjs/router": "^0.14.1",
-    "@solidjs/start": "^1.0.6",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "solid-js": "^1.8.18",
-    "tailwindcss": "^3.4.3",
-    "vinxi": "^0.4.1"
-  },
-  "engines": {
-    "node": ">=18"
+    "@astrojs/solid-js": "^5.0.1",
+    "@astrojs/tailwind": "^5.1.4",
+    "@astrojs/vue": "^5.0.3",
+    "astro": "^5.1.1",
+    "solid-js": "^1.9.3",
+    "tailwindcss": "^3.4.17",
+    "vue": "^3.5.13"
   }
 }

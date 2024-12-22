@@ -1,0 +1,68 @@
+---
+const navLinks = [
+    {
+        name: 'Schedule',
+        url: '/',
+    },
+    {
+        name: 'Config',
+        url: '/config',
+    },
+];
+
+const currentPath = Astro.originPathname;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Astro Basics</title>
+    </head>
+    <body>
+        <nav class="sticky top-0 w-full flex justify-center mb-2">
+            <div
+                class="flex gap-2 justify-center py-4 px-6 rounded-b-3xl bg-white w-fit shadow-xl"
+            >
+                {
+                    navLinks.map(({ name, url }) =>
+                        url !== currentPath ? (
+                            <a
+                                class={
+                                    'border-4 border-slate-800 text-slate-800 font-bold p-2 text-center rounded-full w-32'
+                                }
+                                href={url}
+                            >
+                                {name}
+                            </a>
+                        ) : (
+                            <a
+                                class={
+                                    'border-4 border-slate-800 text-white font-bold p-2 text-center rounded-full w-32 bg-slate-800'
+                                }
+                                href={url}
+                            >
+                                {name}
+                            </a>
+                        )
+                    )
+                }
+            </div>
+        </nav>
+        <main>
+            <slot />
+        </main>
+    </body>
+</html>
+
+<style>
+    html,
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+    }
+</style>
