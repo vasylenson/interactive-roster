@@ -1,11 +1,17 @@
-import { repeat, type Assignment, type Person, type Task } from './schedule';
+import {
+    repeat,
+    type Assignment,
+    type LockedSchedule,
+    type Person,
+    type Task,
+} from './schedule';
 
 export type Config = {
     people: Person[];
     tasks: Task[];
     // startDate: Date;
     numWeeks: number;
-    lockedSchedule: Assignment[];
+    lockedSchedule: LockedSchedule;
 };
 
 let stateCache: Config | null = null;
@@ -39,10 +45,11 @@ function defaultState(): Config {
         people: [
             'Inês',
             'Gabriele',
+            'Ivo',
             'Olga',
             'Marko',
             'Mony',
-            'Marlou',
+            'Gilles',
             'Estephania',
             'Dimitra',
             'Irene',
@@ -60,54 +67,30 @@ function defaultState(): Config {
             { name: 'Kitchen', people: 3, kind: repeat.monthly },
             { name: 'Laundry Room', people: 1, kind: repeat.monthly },
         ] as Task[],
-        lockedSchedule: [
-            {
-                'Living Room': ['Marko', 'Olga'],
-                Toilets: ['Dimitra'],
-                Bathroom: ['Gabriele'],
-                Showers: ['Kristofers'],
-                Hallways: ['Inês'],
-                Kitchen: ['Marlou', 'Irene', 'Estephania'],
-                'Laundry Room': ['Alex'],
-            },
-            {
-                'Living Room': ['Mony', 'Michelle'],
-                Toilets: ['Diego'],
-                Bathroom: ['Inês'],
-                Showers: ['Gabriele'],
-                Hallways: ['Olga'],
-            },
-            {
-                'Living Room': ['Inês', 'Gabriele'],
-                Toilets: ['Olga'],
-                Bathroom: ['Marko'],
-                Showers: ['Mony'],
-                Hallways: ['Marlou'],
-            },
-            {
-                'Living Room': ['Kristofers', 'Irene'],
-                Toilets: ['Marko'],
-                Bathroom: ['Dimitra'],
-                Showers: ['Alex'],
-                Hallways: ['Gabriele'],
-            },
-            {
-                'Living Room': [],
-                Toilets: ['Irene'],
-                Bathroom: ['Michelle'],
-                Showers: ['Olga'],
-                Hallways: ['Diego'],
-                Kitchen: ['Marko', 'Kristofers', 'Gabriele'],
-                'Laundry Room': ['Mony'],
-            },
-            {
-                'Living Room': ['Marlou', 'Diego'],
-                Toilets: ['Estephania'],
-                Bathroom: ['Irene'],
-                Showers: ['Dimitra'],
-                Hallways: ['Marko'],
-            },
-        ] as unknown,
+        lockedSchedule: new Map([
+            [
+                '01-06-2025',
+                {
+                    'Living Room': ['Marko', 'Gilles'],
+                    Toilets: ['Mony'],
+                    Bathroom: ['Ivo'],
+                    Showers: ['Irene'],
+                    Hallways: ['Diego'],
+                    Kitchen: ['Alex', 'Inês', 'Kristofers'],
+                    'Laundry Room': ['Michelle'],
+                },
+            ],
+            [
+                '01-13-2025',
+                {
+                    'Living Room': ['Gabriele', 'Alex'],
+                    Toilets: ['Ivo'],
+                    Bathroom: ['Irene'],
+                    Showers: ['Marko'],
+                    Hallways: ['Estephania'],
+                },
+            ],
+        ]),
         numWeeks: 20,
-    } as Config;
+    } as unknown as Config;
 }

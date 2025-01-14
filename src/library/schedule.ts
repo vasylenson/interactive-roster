@@ -1,31 +1,75 @@
-import { addWeek, isStartOfMonth } from './date';
 import { permute, seed, subsetsOf } from './random';
 
+class Week {
+    private readonly monday: Date;
+
+    /**
+     * @param monday a date string of a format `mm-dd-yyyy`.
+     * The Weed.id has the same format, so can be used to re-construct a week.
+     */
+    constructor(monday: string | Date) {
+        this.monday = new Date(monday);
+    }
+
+    /** Mutate the week to be the week after. */
+    increment() {
+        this.monday.setDate(this.monday.getDate() + 7);
+        return this;
+    }
+
+    is(other: string | Week) {
+        const otherWeek = typeof other === 'string' ? new Week(other) : other;
+        return otherWeek.id === this.id;
+    }
+
+    copy() {
+        return new Week(this.id);
+    }
+
+    /**
+     * The week after this one.
+     */
+    get next() {
+        return this.copy().increment();
+    }
+
+    /** Date string of the monday of this week formatted */
+    get id() {
+        const day = ('0' + this.monday.getDate()).slice(-2);
+        const month = ('0' + this.monday.getMonth() + 1).slice(-2);
+        const year = this.monday.getFullYear();
+        return `${month}-${day}-${year}`;
+    }
+
+    /**
+     * The week is at the start of the month if it contains the first monday of the month.
+     */
+    get isStartOfMonth() {
+        return this.monday.getDate() <= 7;
+    }
+
+    get date() {
+        return new Date(this.monday);
+    }
+}
+
+export type LockedSchedule = Map<string, Assignment>;
+
 export class Schedule {
-    private weeks: Assignment[];
+    private weeks: LockedSchedule;
     private people: Person[];
     private tasks: Task[];
-    readonly startDate: Date;
+    readonly startDate: Week;
 
-    constructor(startDate: Date, people: Person[], tasks: Task[]) {
-        this.startDate = startDate;
+    constructor(startDate: string | Date, people: Person[], tasks: Task[]) {
+        this.startDate = new Week(startDate);
         this.people = people;
         this.tasks = tasks;
-        this.weeks = [];
+        this.weeks = new Map();
     }
 
-    pushWeek(assignment: Assignment) {
-        this.weeks.push(assignment);
-    }
-
-    lock(assignments: Assignment[]) {
-        for (const assignment of assignments) this.pushWeek(assignment);
-    }
-
-    get endDate() {
-        const endDate = new Date();
-        endDate.setDate(this.startDate.getDate() + 7 * this.weeks.length);
-        return endDate;
+    lock(assignments: LockedSchedule) {
+        for (const entry of assignments.entries()) this.weeks.set(...entry);
     }
 
     /**
@@ -34,60 +78,46 @@ export class Schedule {
      */
     assignments() {
         const generator = function* (
-            lockedSchedule: Assignment[],
+            startDate: Week,
+            lockedSchedule: LockedSchedule,
             people: Person[],
             tasks: Task[]
         ) {
             let counters = initCounters(people, names(tasks));
-            let date = new Date('09-02-2024');
-            console.log({ date });
+            let monday = startDate.copy();
+
             seed(912312423333);
 
-            for (const week of lockedSchedule) {
-                yield [date, tasks.map(({ name }) => week[name] ?? [])] as [
-                    Date,
-                    string[][]
-                ];
-                updateCounters(counters, week);
-                addWeek(date);
-                console.log({ date });
-            }
+            console.log({ lockedSchedule, monday });
 
-            for (let weekNum = lockedSchedule.length; true; weekNum++)
+            for (let weekNum = 0; true; weekNum++) {
                 try {
-                    if (date.toString() === new Date('12-02-2024').toString()) {
-                        const ivo = 'Ivo' as Person;
-                        people = people.filter((person) => person != 'Marlou');
-                        people.push(ivo);
-                        addPerson(ivo, counters);
-                    }
+                    //TODO: process changes
+                    // assign
+                    console.log('looking up', monday.id);
+                    const assignment =
+                        lockedSchedule.get(monday.id) ??
+                        nextWeekTasks(
+                            people,
+                            monday.isStartOfMonth ? tasks : weekly(tasks),
+                            counters
+                        );
 
-                    let pool =
-                        weekNum > 5 && weekNum < 10
-                            ? people.filter((person) => person != 'Alex')
-                            : people;
-                    pool =
-                        weekNum == 6
-                            ? exclude(pool, ['Estephania'] as Person[])
-                            : pool;
+                    if (assignment) updateCounters(counters, assignment);
 
-                    const assignment = nextWeekTasks(
-                        pool,
-                        isStartOfMonth(date) ? tasks : weekly(tasks),
-                        counters
-                    );
                     yield [
-                        new Date(date),
+                        monday.date,
                         tasks.map(({ name }) => assignment[name] ?? []),
                     ] as [Date, string[][]];
-                    addWeek(date);
+                    monday.increment();
                 } catch (e) {
                     console.log(e);
                     return;
                 }
+            }
         };
 
-        return generator(this.weeks, this.people, this.tasks);
+        return generator(this.startDate, this.weeks, this.people, this.tasks);
     }
 }
 
@@ -151,7 +181,7 @@ export function initCounters(
  *
  * @param people considered in the selection. Don't have to be all the people mentioned in counters.
  * @param tasks
- * @param counters are mutated
+ * @param counters are not mutated
  * @returns the record of tasks to arrays of assigned people.
  */
 export function nextWeekTasks(
@@ -220,12 +250,8 @@ export function nextWeekTasks(
         let minScore = Infinity;
         let bestAssignment = null;
         let count = 0;
-        for (const [assignment, score] of makeAssignments(
-            {},
-            0,
-            tasks,
-            new Set(people)
-        )) {
+        const generator = makeAssignments({}, 0, tasks, new Set(people));
+        for (const [assignment, score] of generator) {
             if (score < minScore) {
                 minScore = score;
                 bestAssignment = assignment;
@@ -233,11 +259,7 @@ export function nextWeekTasks(
             count++;
         }
 
-        // console.log({ count });
-
         if (bestAssignment === null) continue;
-
-        updateCounters(counters, bestAssignment);
 
         return bestAssignment;
     }

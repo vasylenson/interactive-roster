@@ -1,17 +1,10 @@
 import { createSignal, For, Match, Switch } from 'solid-js';
-import {
-    type Assignment,
-    names,
-    type Person,
-    repeat,
-    Schedule,
-    type Task,
-} from '../../library/schedule';
+import { names, Schedule } from '../../library/schedule';
 import { read } from '../../library/state';
 
 export default function Home() {
     const { people, tasks, lockedSchedule, numWeeks } = read();
-    const schedule = new Schedule(new Date('09-02-2024'), people, tasks);
+    const schedule = new Schedule(new Date('01-06-2025'), people, tasks);
     console.log(lockedSchedule);
     schedule.lock(lockedSchedule);
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
@@ -73,9 +66,7 @@ function TaskTable(props: { tasks: string[]; rows: [Date, string[][]][] }) {
                 <For each={props.rows}>
                     {([date, tasks]) => (
                         <tr>
-                            <td>
-                                {(console.log(date), date.toLocaleDateString())}
-                            </td>
+                            <td>{date.toLocaleDateString()}</td>
                             <For each={tasks}>
                                 {(item) => (
                                     <td class="p-2 border">
