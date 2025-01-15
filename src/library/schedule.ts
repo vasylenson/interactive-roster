@@ -1,5 +1,17 @@
 import { permute, seed, subsetsOf } from './random';
 
+class Bag<K, V> extends Map<K, V[]> {
+    add(key: K, value: V) {
+        let entry = this.get(key);
+        if (!entry) this.set(key, (entry = []));
+        entry.push(value);
+    }
+
+    getItems(key: K) {
+        return this.get(key) || [];
+    }
+}
+
 class Week {
     private readonly monday: Date;
 
@@ -11,6 +23,10 @@ class Week {
         this.monday = new Date(monday);
     }
 
+    static from(week: string | Week) {
+        return typeof week === 'string' ? new Week(week) : week;
+    }
+
     /** Mutate the week to be the week after. */
     increment() {
         this.monday.setDate(this.monday.getDate() + 7);
@@ -18,8 +34,7 @@ class Week {
     }
 
     is(other: string | Week) {
-        const otherWeek = typeof other === 'string' ? new Week(other) : other;
-        return otherWeek.id === this.id;
+        return Week.from(other).id === this.id;
     }
 
     copy() {
@@ -36,7 +51,7 @@ class Week {
     /** Date string of the monday of this week formatted */
     get id() {
         const day = ('0' + this.monday.getDate()).slice(-2);
-        const month = ('0' + this.monday.getMonth() + 1).slice(-2);
+        const month = ('0' + (this.monday.getMonth() + 1)).slice(-2);
         const year = this.monday.getFullYear();
         return `${month}-${day}-${year}`;
     }
@@ -53,6 +68,10 @@ class Week {
     }
 }
 
+if (window) {
+    (window as any).Week = Week;
+}
+
 export type LockedSchedule = Map<string, Assignment>;
 
 export class Schedule {
@@ -60,16 +79,28 @@ export class Schedule {
     private people: Person[];
     private tasks: Task[];
     readonly startDate: Week;
+    private leaves: Bag<string, Person>;
+    private entrances: Bag<string, Person>;
 
     constructor(startDate: string | Date, people: Person[], tasks: Task[]) {
         this.startDate = new Week(startDate);
         this.people = people;
         this.tasks = tasks;
         this.weeks = new Map();
+        this.leaves = new Bag();
+        this.entrances = new Bag();
     }
 
     lock(assignments: LockedSchedule) {
         for (const entry of assignments.entries()) this.weeks.set(...entry);
+    }
+
+    leave(person: Person, week: string | Week) {
+        this.leaves.add(Week.from(week).id, person);
+    }
+
+    enter(person: Person, week: string | Week) {
+        this.entrances.add(Week.from(week).id, person);
     }
 
     /**
@@ -81,18 +112,31 @@ export class Schedule {
             startDate: Week,
             lockedSchedule: LockedSchedule,
             people: Person[],
-            tasks: Task[]
+            tasks: Task[],
+            schedule: Schedule
         ) {
             let counters = initCounters(people, names(tasks));
             let monday = startDate.copy();
 
-            seed(912312423333);
+            seed(91231242333);
 
-            console.log({ lockedSchedule, monday });
+            console.log({ schedule, monday });
 
             for (let weekNum = 0; true; weekNum++) {
                 try {
                     //TODO: process changes
+
+                    const leaves = schedule.leaves.getItems(monday.id);
+                    people = people.filter((p) => !leaves.includes(p));
+
+                    const entrances = schedule.entrances.getItems(monday.id);
+                    for (const entrance of entrances) {
+                        people.push(entrance);
+                        addPerson(entrance, counters);
+                    }
+
+                    console.log({ week: monday.id, leaves, entrances });
+
                     // assign
                     console.log('looking up', monday.id);
                     const assignment =
@@ -117,7 +161,13 @@ export class Schedule {
             }
         };
 
-        return generator(this.startDate, this.weeks, this.people, this.tasks);
+        return generator(
+            this.startDate,
+            this.weeks,
+            this.people,
+            this.tasks,
+            this
+        );
     }
 }
 
@@ -250,7 +300,10 @@ export function nextWeekTasks(
         let minScore = Infinity;
         let bestAssignment = null;
         let count = 0;
-        const generator = makeAssignments({}, 0, tasks, new Set(people));
+        const sortedTasks = tasks.toSorted(
+            (a, b) => taskWeight(a) - taskWeight(b)
+        );
+        const generator = makeAssignments({}, 0, sortedTasks, new Set(people));
         for (const [assignment, score] of generator) {
             if (score < minScore) {
                 minScore = score;
@@ -265,6 +318,10 @@ export function nextWeekTasks(
     }
 
     throw new Error('Could not choose anything');
+}
+
+function taskWeight(task: Task) {
+    return +(task.kind === repeat.monthly) + task.people * 2;
 }
 
 export function updateCounters(counters: Counters, assignment: Assignment) {
@@ -331,8 +388,8 @@ const score: Heuristic = (person, task, counters) => {
     timesDone -= timeTaskDoneAverage;
 
     if (task.kind === repeat.monthly) {
-        weeksSinceDone /= 4;
-        timesDone *= 2;
+        weeksSinceDone /= 6;
+        timesDone *= 4;
     }
 
     const a = weeksSinceDone < 7 ? 5 : 2 / weeksSinceDone;
@@ -343,8 +400,6 @@ const score: Heuristic = (person, task, counters) => {
             : weeksSinceDoneAnyTask < 3
             ? 3
             : 1 / weeksSinceDoneAnyTask;
-
-    // console.log({ score: 1 + a * b + c });
 
     return 1 + a * b * c;
 };

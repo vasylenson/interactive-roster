@@ -1,5 +1,5 @@
 import { createSignal, For, Match, Switch } from 'solid-js';
-import { names, Schedule } from '../../library/schedule';
+import { names, Schedule, type Person } from '../../library/schedule';
 import { read } from '../../library/state';
 
 export default function Home() {
@@ -7,6 +7,10 @@ export default function Home() {
     const schedule = new Schedule(new Date('01-06-2025'), people, tasks);
     console.log(lockedSchedule);
     schedule.lock(lockedSchedule);
+    schedule.leave('Irene' as Person, '02-03-2025');
+    schedule.leave('Inês' as Person, '02-03-2025');
+    schedule.enter('Eva' as Person, '02-03-2025');
+    schedule.enter('Danai' as Person, '02-03-2025');
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
     const tasksNames = names(tasks);
