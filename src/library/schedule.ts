@@ -81,6 +81,7 @@ export class Schedule {
     readonly startDate: Week;
     private leaves: Bag<string, Person>;
     private entrances: Bag<string, Person>;
+    private pauses: Bag<string, Person>;
 
     constructor(startDate: string | Date, people: Person[], tasks: Task[]) {
         this.startDate = new Week(startDate);
@@ -89,6 +90,7 @@ export class Schedule {
         this.weeks = new Map();
         this.leaves = new Bag();
         this.entrances = new Bag();
+        this.pauses = new Bag();
     }
 
     lock(assignments: LockedSchedule) {
@@ -103,6 +105,21 @@ export class Schedule {
         this.entrances.add(Week.from(week).id, person);
     }
 
+    pause(person: Person, week: string | Week, numWeeks: number) {
+        week = Week.from(week).copy();
+        for (numWeeks; numWeeks > 0; numWeeks--) {
+            this.pauses.add(Week.from(week).id, person);
+            week.increment();
+        }
+    }
+
+    availablePeople(week: string | Week, people?: Person[]) {
+        const paused = this.pauses.getItems(Week.from(week).id);
+        return (people ?? this.people).filter((person) => {
+            return !paused.includes(person);
+        });
+    }
+
     /**
      * Iterate through the weeks of the schedule, starting at the start date,
      * and generating new weeks on demand indefinitely.
@@ -113,7 +130,7 @@ export class Schedule {
             lockedSchedule: LockedSchedule,
             people: Person[],
             tasks: Task[],
-            schedule: Schedule
+            schedule: Schedule,
         ) {
             let counters = initCounters(people, names(tasks));
             let monday = startDate.copy();
@@ -142,7 +159,7 @@ export class Schedule {
                     const assignment =
                         lockedSchedule.get(monday.id) ??
                         nextWeekTasks(
-                            people,
+                            schedule.availablePeople(monday.id, people),
                             monday.isStartOfMonth ? tasks : weekly(tasks),
                             counters
                         );
