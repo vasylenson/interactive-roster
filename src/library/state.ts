@@ -91,6 +91,6 @@ function defaultState(): Config {
                 },
             ],
         ]),
-        numWeeks: 20,
+        numWeeks: 27,
     } as unknown as Config;
 }
