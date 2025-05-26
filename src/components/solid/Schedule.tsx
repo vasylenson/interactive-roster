@@ -44,10 +44,32 @@ export default function Home() {
             'Living Room': ['Eva', 'Kristofers'],
             Toilets: ['Gilles'],
             Bathroom: ['Diego'],
-            Showers: ['Danai'],
+            Showers: [],
             Hallways: ['Marko'],
             Kitchen: ['Dimitra', 'Estephania', 'Alex'],
             'Laundry Room': ['Olga'],
+        } as Assignment,
+    );
+
+    lockedSchedule.set(
+        '05-19-2025',
+        {
+            'Living Room': ['Mony', 'Michelle'],
+            Toilets: ['Gabriele'],
+            Bathroom: ['Danai'],
+            Showers: ['Danai'],
+            Hallways: [],
+        } as Assignment,
+    );
+
+    lockedSchedule.set(
+        '05-26-2025',
+        {
+            'Living Room': ['Olga', 'Alex'],
+            Toilets: ['Dimitra'],
+            Bathroom: ['Gilles'],
+            Showers: ['Marko'],
+            Hallways: ['Eva'],
         } as Assignment,
     );
 
