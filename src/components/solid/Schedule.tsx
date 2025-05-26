@@ -61,6 +61,7 @@ export default function Home() {
     schedule.pause('Dimitra' as Person, '04-28-2025', 1);
     schedule.pause('Estephania' as Person, '04-28-2025', 1);
     schedule.pause('Michelle' as Person, '05-05-2025', 1);
+    schedule.pause('Estephania' as Person, '05-26-2025', 2);
 
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
