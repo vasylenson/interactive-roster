@@ -65,10 +65,10 @@ export default function Home() {
     lockedSchedule.set(
         '05-26-2025',
         {
-            'Living Room': ['Olga', 'Alex'],
+            'Living Room': ['Marko', 'Alex'],
             Toilets: ['Dimitra'],
             Bathroom: ['Gilles'],
-            Showers: ['Marko'],
+            Showers: ['Olga'],
             Hallways: ['Eva'],
         } as Assignment,
     );
