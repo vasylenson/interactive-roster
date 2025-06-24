@@ -73,11 +73,23 @@ export default function Home() {
         } as Assignment,
     );
 
+    lockedSchedule.set(
+        '06-23-2025',
+        {
+            'Living Room': ['Kristofers', 'Gilles'],
+            Toilets: ['Diego'],
+            Bathroom: ['Eva'],
+            Showers: ['Alex'],
+            Hallways: ['Estephania'],
+        } as Assignment,
+    );
+
     schedule.lock(lockedSchedule);
     schedule.leave('Irene' as Person, '02-03-2025');
     schedule.leave('Inês' as Person, '02-03-2025');
     schedule.enter('Eva' as Person, '02-03-2025');
     schedule.enter('Danai' as Person, '02-03-2025');
+    schedule.leave('Ivo' as Person, '06-23-2025');
 
     schedule.pause('Eva' as Person, '04-21-2025', 2);
     schedule.pause('Dimitra' as Person, '04-28-2025', 1);
@@ -85,6 +97,7 @@ export default function Home() {
     schedule.pause('Michelle' as Person, '05-05-2025', 1);
     schedule.pause('Estephania' as Person, '05-26-2025', 2);
     schedule.pause('Olga' as Person, '06-02-2025', 1);
+    // schedule.pause('Diego' as Person, '06-23-2025', 1);
 
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
