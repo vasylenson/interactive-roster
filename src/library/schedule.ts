@@ -431,11 +431,8 @@ const scorePeopleCombination: ScoreCombo = (people) => {
 
     return (
         not('Marko', 'Diego') +
-        not('Marko', 'Marlou') +
-        not('Marko', 'Michelle') +
-        not('Marko', 'Estephania') +
-        not('Olga', 'Marlou') +
-        not('Olga', 'Michelle')
+        not('Marko', 'Alex') +
+        not('Marko', 'Michelle')
     );
 };
 

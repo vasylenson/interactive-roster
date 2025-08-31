@@ -43,17 +43,17 @@ export function clear() {
 function defaultState(): Config {
     return {
         people: [
-            'Inês',
+            'Eva',
             'Gabriele',
             'Ivo',
-            'Olga',
+            'Meera',
             'Marko',
-            'Mony',
+            'Lucas',
             'Gilles',
             'Estephania',
             'Dimitra',
-            'Irene',
-            'Kristofers',
+            'Danai',
+            'Kris',
             'Alex',
             'Michelle',
             'Diego',
@@ -67,30 +67,7 @@ function defaultState(): Config {
             { name: 'Kitchen', people: 3, kind: repeat.monthly },
             { name: 'Laundry Room', people: 1, kind: repeat.monthly },
         ] as Task[],
-        lockedSchedule: new Map([
-            [
-                '01-06-2025',
-                {
-                    'Living Room': ['Marko', 'Gilles'],
-                    Toilets: ['Mony'],
-                    Bathroom: ['Ivo'],
-                    Showers: ['Irene'],
-                    Hallways: ['Diego'],
-                    Kitchen: ['Alex', 'Inês', 'Kristofers'],
-                    'Laundry Room': ['Michelle'],
-                },
-            ],
-            [
-                '01-13-2025',
-                {
-                    'Living Room': ['Gabriele', 'Alex'],
-                    Toilets: ['Ivo'],
-                    Bathroom: ['Irene'],
-                    Showers: ['Marko'],
-                    Hallways: ['Estephania'],
-                },
-            ],
-        ]),
+        lockedSchedule: new Map(),
         numWeeks: 27,
     } as unknown as Config;
 }
