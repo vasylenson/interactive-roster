@@ -7,6 +7,8 @@ export default function Home() {
     const schedule = new Schedule(new Date('09-01-2025'), people, tasks);
     console.log(lockedSchedule);
 
+    schedule.pause('Dimitra' as Person, '10-20-2025', 1);
+
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
     const tasksNames = names(tasks);
