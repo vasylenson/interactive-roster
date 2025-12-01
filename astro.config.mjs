@@ -2,10 +2,13 @@
 import { defineConfig } from 'astro/config';
 
 import solidJs from '@astrojs/solid-js';
-import tailwind from '@astrojs/tailwind';
 import vue from '@astrojs/vue';
+import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [solidJs(), tailwind(), vue()]
+  integrations: [solidJs(), vue()],
+  vite: {
+    plugins: [tailwindcss()]
+  }
 });

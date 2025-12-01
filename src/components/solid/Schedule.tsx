@@ -78,7 +78,7 @@ function TaskTable(props: {
                 <For each={props.rows}>
                     {([date, tasks]) => (
                         <tr>
-                            <td>{date.toLocaleDateString()}</td>
+                            <td class="border" classList={{'bg-amber-300': isCurrent(date)}}>{date.toLocaleDateString()}</td>
                             <For each={tasks}>
                                 {(item) => (
                                     <td class="p-2 border">
@@ -159,4 +159,27 @@ function op(people: Person[]) {
             )}
         </>
     );
+}
+
+function isCurrent(date: Date) {
+    const today = new Date();
+    return isSameWeek(today, date);
+}
+
+function isSameWeek(d1: Date, d2: Date, weekStartsOn = 0) {
+  const date1 = new Date(d1);
+  const date2 = new Date(d2);
+
+  const startOfWeek = (date: Date) => {
+    const diff = (date.getDay() + 7 - weekStartsOn) % 7;
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(date.getDate() - diff);
+    return start;
+  };
+
+  const s1 = startOfWeek(date1);
+  const s2 = startOfWeek(date2);
+
+  return s1.getTime() === s2.getTime();
 }
