@@ -1,4 +1,4 @@
-import { createSignal, For, Match, Switch } from 'solid-js';
+import { createSignal, For, Match, Show, Switch } from 'solid-js';
 import { names, Schedule, type Person } from '../../library/schedule';
 import { read } from '../../library/state';
 
@@ -8,6 +8,9 @@ export default function Home() {
     console.log(lockedSchedule);
 
     schedule.pause('Dimitra' as Person, '10-20-2025', 1);
+    schedule.leave('Dimitra' as Person, '12-1-2025');
+    schedule.leave('Danai' as Person, '12-1-2025');
+    schedule.enter('Diba' as Person, '12-1-2025');
 
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
@@ -46,6 +49,7 @@ export default function Home() {
                     <TaskTable
                         rows={rows() as [Date, string[][]][]}
                         tasks={tasksNames}
+                        people={people}
                     />
                 </Match>
             </Switch>
@@ -53,14 +57,20 @@ export default function Home() {
     );
 }
 
-function TaskTable(props: { tasks: string[]; rows: [Date, string[][]][] }) {
+function TaskTable(props: {
+    people: Person[];
+    tasks: string[];
+    rows: [Date, string[][]][];
+}) {
     return (
-        <table class="border-2">
+        <table>
             <thead>
                 <tr>
-                    <td class="border">Date</td>
+                    <td class="border-2">Date</td>
                     <For each={props.tasks}>
-                        {(header) => <th class="px-2 py-1 border">{header}</th>}
+                        {(header) => (
+                            <th class="px-2 py-1 border-2">{header}</th>
+                        )}
                     </For>
                 </tr>
             </thead>
@@ -76,10 +86,77 @@ function TaskTable(props: { tasks: string[]; rows: [Date, string[][]][] }) {
                                     </td>
                                 )}
                             </For>
+                            <td>{op(props.people)}</td>
                         </tr>
                     )}
                 </For>
             </tbody>
         </table>
+    );
+}
+
+function op(people: Person[]) {
+    const [expanded, setExpanded] = createSignal(false);
+    const [person, setPerson] = createSignal<string | null>(null);
+    const [search, setSearch] = createSignal('');
+    let inputRef!: HTMLInputElement;
+
+    const expand = () => {
+        setExpanded(true);
+        setTimeout(() => inputRef.focus());
+    };
+    return (
+        <>
+            {!expanded() ? (
+                <button
+                    type="button"
+                    class="p-2 border-0 hover:opacity-100 transition-all"
+                    classList={{ 'opacity-0': !expanded() }}
+                    on:click={expand}
+                >
+                    [away...]
+                </button>
+            ) : (
+                <div class="relative ml-2">
+                    <div on:focusout={() => setExpanded(false)}>
+                        <input
+                            type="text"
+                            ref={inputRef}
+                            placeholder="who is away?"
+                            class="p-1 focus:outline-none"
+                            on:input={(e) => setSearch(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            class="text-red-500 px-2 ml-2"
+                            on:click={() => setExpanded(false)}
+                        >
+                            [cancel]
+                        </button>
+                    </div>
+                    <Show when={search().length > 0}>
+                        <ul class="absolute bg-white p-1 z-20 flex flex-col">
+                            <For
+                                each={people.filter((person) =>
+                                    person
+                                        .toLowerCase()
+                                        .includes(search().toLowerCase())
+                                )}
+                            >
+                                {(person) => (
+                                    <button
+                                        type="button"
+                                        class="block hover:bg-slate-200 cursor-pointer"
+                                        on:click={() => setPerson(person)}
+                                    >
+                                        {person}
+                                    </button>
+                                )}
+                            </For>
+                        </ul>
+                    </Show>
+                </div>
+            )}
+        </>
     );
 }
