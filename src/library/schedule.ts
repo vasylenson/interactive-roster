@@ -12,7 +12,7 @@ class Bag<K, V> extends Map<K, V[]> {
     }
 }
 
-class Week {
+export class Week {
     private readonly monday: Date;
 
     /**
@@ -179,10 +179,8 @@ export class Schedule {
 
                     if (assignment) updateCounters(counters, assignment);
 
-                    yield [
-                        monday.date,
-                        tasks.map(({ name }) => assignment[name] ?? []),
-                    ] as [Date, string[][]];
+                    const output: [Week, Assignment] = [monday, assignment];
+                    yield output;
                     monday.increment();
                 } catch (e) {
                     console.log(e);
@@ -197,6 +195,16 @@ export class Schedule {
             this.people,
             this.tasks,
             this
+        );
+    }
+
+    formattedAssignments() {
+        return this.assignments().map(
+            ([week, assignment]) =>
+                [
+                    week.date,
+                    this.tasks.map(({ name }) => assignment[name] ?? []),
+                ] as [Date, string[][]]
         );
     }
 }
@@ -442,9 +450,7 @@ const scorePeopleCombination: ScoreCombo = (people) => {
             : 0;
 
     return (
-        not('Marko', 'Diego') +
-        not('Marko', 'Alex') +
-        not('Marko', 'Michelle')
+        not('Marko', 'Diego') + not('Marko', 'Alex') + not('Marko', 'Michelle')
     );
 };
 
