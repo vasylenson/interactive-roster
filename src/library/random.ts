@@ -28,7 +28,6 @@ export function sample<T>(n: number, distribution: readonly [T, number][]) {
         const cd = cumulative(probabilities);
         const index = cd.findIndex((p) => p > point);
 
-        // console.log({ index, point, cd: JSON.stringify(cd), probabilities, items });
         choices.push(items[index]);
         probabilities.splice(index, 1);
         items.splice(index, 1);

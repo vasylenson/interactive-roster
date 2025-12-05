@@ -5,12 +5,12 @@ import { read } from '../../library/state';
 export default function Home() {
     const { people, tasks, lockedSchedule, numWeeks } = read();
     const schedule = new Schedule(new Date('09-01-2025'), people, tasks);
-    console.log(lockedSchedule);
 
     schedule.pause('Dimitra' as Person, '10-20-2025', 1);
     schedule.leave('Dimitra' as Person, '12-1-2025');
     schedule.leave('Danai' as Person, '12-1-2025');
     schedule.enter('Diba' as Person, '12-1-2025');
+    schedule.skipWeek('12-22-2025', 2);
 
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
@@ -66,7 +66,7 @@ function TaskTable(props: {
         <table>
             <thead>
                 <tr>
-                    <td class="border-2">Date</td>
+                    <td class="border-2 w-32 text-center">Date</td>
                     <For each={props.tasks}>
                         {(header) => (
                             <th class="px-2 py-1 border-2">{header}</th>
@@ -78,7 +78,16 @@ function TaskTable(props: {
                 <For each={props.rows}>
                     {([date, tasks]) => (
                         <tr>
-                            <td class="border" classList={{'bg-amber-300': isCurrent(date)}}>{date.toLocaleDateString()}</td>
+                            <td
+                                class="border px-1"
+                                classList={{ 'bg-amber-300': isCurrent(date) }}
+                            >
+                                {date.toLocaleDateString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: '2-digit',
+                                })}
+                            </td>
                             <For each={tasks}>
                                 {(item) => (
                                     <td class="p-2 border">

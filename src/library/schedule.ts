@@ -82,6 +82,7 @@ export class Schedule {
     private leaves: Bag<string, Person>;
     private entrances: Bag<string, Person>;
     private pauses: Bag<string, Person>;
+    private skippedWeeks: Set<Week['id']>;
 
     constructor(startDate: string | Date, people: Person[], tasks: Task[]) {
         this.startDate = new Week(startDate);
@@ -91,6 +92,7 @@ export class Schedule {
         this.leaves = new Bag();
         this.entrances = new Bag();
         this.pauses = new Bag();
+        this.skippedWeeks = new Set();
     }
 
     lock(assignments: LockedSchedule) {
@@ -99,6 +101,7 @@ export class Schedule {
 
     leave(person: Person, week: string | Week) {
         this.leaves.add(Week.from(week).id, person);
+        return this;
     }
 
     enter(person: Person, week: string | Week) {
@@ -111,6 +114,16 @@ export class Schedule {
             this.pauses.add(Week.from(week).id, person);
             week.increment();
         }
+        return this;
+    }
+
+    skipWeek(week: string | Week, numWeeks = 1) {
+        const weekObj = Week.from(week).copy();
+        for (const _ in new Array(numWeeks).fill(null)) {
+            this.skippedWeeks.add(weekObj.id);
+            weekObj.increment();
+        }
+        return this;
     }
 
     availablePeople(week: string | Week, people?: Person[]) {
@@ -130,14 +143,12 @@ export class Schedule {
             lockedSchedule: LockedSchedule,
             people: Person[],
             tasks: Task[],
-            schedule: Schedule,
+            schedule: Schedule
         ) {
             let counters = initCounters(people, names(tasks));
             let monday = startDate.copy();
 
             seed(91231242333);
-
-            console.log({ schedule, monday });
 
             for (let weekNum = 0; true; weekNum++) {
                 try {
@@ -152,10 +163,12 @@ export class Schedule {
                         addPerson(entrance, counters);
                     }
 
-                    console.log({ week: monday.id, leaves, entrances });
+                    if (schedule.skippedWeeks.has(monday.id)) {
+                        monday.increment();
+                        continue;
+                    }
 
                     // assign
-                    console.log('looking up', monday.id);
                     const assignment =
                         lockedSchedule.get(monday.id) ??
                         nextWeekTasks(
@@ -277,7 +290,6 @@ export function nextWeekTasks(
 
     for (const spread of [3, 5, 7]) {
         const candidates = getCandidates(spread);
-        // console.log({ candidates });
         function* makeAssignments(
             current: Assignment,
             currentScore: number,
@@ -406,7 +418,7 @@ const score: Heuristic = (person, task, counters) => {
 
     if (task.kind === repeat.monthly) {
         weeksSinceDone /= 6;
-        timesDone *= 4;
+        timesDone *= 10;
     }
 
     const a = weeksSinceDone < 7 ? 5 : 2 / weeksSinceDone;
