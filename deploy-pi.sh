@@ -1,2 +1,3 @@
 git pull
-docker-compose up prod -d
+docker-compose down
+docker-compose up -d prod

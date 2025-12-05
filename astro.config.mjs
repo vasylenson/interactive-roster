@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   integrations: [solidJs(), vue()],
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    preview: {
+      allowedHosts: ['localhost', 'marko-pi.student.utwente.nl']
+    },
   }
 });
