@@ -417,8 +417,8 @@ const score: Heuristic = (person, task, counters) => {
     timesDone -= timeTaskDoneAverage;
 
     if (task.kind === repeat.monthly) {
-        weeksSinceDone /= 6;
-        timesDone *= 10;
+        weeksSinceDone /= 2;
+        timesDone *= 4;
     }
 
     const a = weeksSinceDone < 7 ? 5 : 2 / weeksSinceDone;
