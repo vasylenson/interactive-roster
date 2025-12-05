@@ -1,6 +1,5 @@
 services:
   dev:
-    profiles: ["", dev]
     build:
       context: .
       dockerfile: ./docker/Dockerfile.dev
@@ -11,7 +10,6 @@ services:
       - 4321:4321
 
   prod:
-    profiles: [production]
     build:
       context: .
       dockerfile: ./docker/Dockerfile.prod

@@ -1,2 +1,2 @@
 git pull
-docker compose up prod --build
+docker compose up prod -d
