@@ -1,0 +1,18 @@
+services:
+  dev:
+    profiles: ["", dev]
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.dev
+    command: npx astro dev --host
+    volumes:
+      - .:/app
+    ports:
+      - 4321:4321
+
+  prod:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.prod
+    command: npx astro preview --host
