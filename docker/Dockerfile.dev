@@ -2,10 +2,10 @@ FROM node:20
 
 WORKDIR /app
 
-COPY ./package.json ./package-lock.json /app
+COPY . /app
 
 RUN npm i
 
-EXPOSE 4321
+CMD npx astro dev
 
-CMD npx astro dev --host
+EXPOSE 4321
