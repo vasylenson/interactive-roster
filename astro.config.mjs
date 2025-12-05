@@ -10,8 +10,11 @@ export default defineConfig({
   integrations: [solidJs(), vue()],
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      allowedHosts: ['marko-pi.student.utwente.nl']
+    },
     preview: {
-      allowedHosts: ['localhost', 'marko-pi.student.utwente.nl']
+      allowedHosts: ['marko-pi.student.utwente.nl']
     },
   }
 });
