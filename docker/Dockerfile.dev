@@ -7,3 +7,5 @@ COPY ./package.json ./package-lock.json /app
 RUN npm i
 
 EXPOSE 4321
+
+CMD npx astro dev --host

@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.dev
-    command: npx astro dev --host
     volumes:
       - .:/app
     ports:
@@ -13,4 +12,5 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.prod
-    command: npx astro preview --host
+    ports:
+      - 4321:4321
