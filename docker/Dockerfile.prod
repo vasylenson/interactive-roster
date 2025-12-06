@@ -7,6 +7,6 @@ COPY . /app
 RUN npm i
 RUN npm run build
 
-CMD npx astro preview --host --allowed-hosts=marko-pi.student.utwente.nl
+CMD npx astro preview --host --allowed-hosts=marko-pi.student.utwente.nl,.by-marko.com
 
 EXPOSE 4321
