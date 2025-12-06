@@ -12,7 +12,7 @@ export default function Home() {
     schedule.leave('Dimitra' as Person, '12-1-2025');
     schedule.leave('Danai' as Person, '12-1-2025');
     schedule.enter('Diba' as Person, '12-1-2025');
-    schedule.skipWeek('12-22-2025', 2);
+    schedule.skipWeek('12-22-2025', 1);
 
     const [weeks, setWeeks] = createSignal<number | null>(numWeeks);
     const [rows, setRows] = createSignal<[Date, string[][]][] | null>(null);
