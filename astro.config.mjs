@@ -11,7 +11,7 @@ export default defineConfig({
     vite: {
         plugins: [tailwindcss()],
         server: {
-            allowedHosts: ['marko-pi.student.utwente.nl'],
+            allowedHosts: ['marko-pi.student.utwente.nl', '.by-marko.com'],
         },
         preview: {
             allowedHosts: ['marko-pi.student.utwente.nl', '.by-marko.com'],
