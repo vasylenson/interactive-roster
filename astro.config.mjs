@@ -7,14 +7,14 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [solidJs(), vue()],
-  vite: {
-    plugins: [tailwindcss()],
-    server: {
-      allowedHosts: ['marko-pi.student.utwente.nl']
+    integrations: [solidJs(), vue()],
+    vite: {
+        plugins: [tailwindcss()],
+        server: {
+            allowedHosts: ['marko-pi.student.utwente.nl'],
+        },
+        preview: {
+            allowedHosts: ['marko-pi.student.utwente.nl', '.by-marko.com'],
+        },
     },
-    preview: {
-      allowedHosts: ['marko-pi.student.utwente.nl']
-    },
-  }
 });
