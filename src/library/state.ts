@@ -24,10 +24,14 @@ export function read() {
 }
 
 export function refresh() {
-    const stateString = localStorage.getItem(key);
-    stateCache = stateString
-        ? (JSON.parse(stateString) as Config)
-        : defaultState();
+    try {
+        const stateString = localStorage.getItem(key);
+        stateCache = stateString
+            ? (JSON.parse(stateString) as Config)
+            : defaultState();
+    } catch {
+        stateCache = defaultState();
+    }
 }
 
 export function write(state: Config) {
