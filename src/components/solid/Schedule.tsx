@@ -9,6 +9,11 @@ export default function Home() {
     schedule.lock(lockedSchedule);
 
     schedule.pause('Dimitra' as Person, '10-20-2025', 1);
+    schedule.pause('Lucas' as Person, '12-15-2025', 3);
+    schedule.pause('Gabriele' as Person, '12-29-2025', 1);
+    schedule.pause('Kris' as Person, '12-29-2025', 1);
+    schedule.pause('Ivo' as Person, '12-29-2025', 1);
+    schedule.pause('Meera' as Person, '12-29-2025', 1);
     schedule.leave('Dimitra' as Person, '12-1-2025');
     schedule.leave('Danai' as Person, '12-1-2025');
     schedule.enter('Diba' as Person, '12-1-2025');
@@ -186,19 +191,19 @@ function isCurrent(date: Date) {
 }
 
 function isSameWeek(d1: Date, d2: Date, weekStartsOn = 0) {
-  const date1 = new Date(d1);
-  const date2 = new Date(d2);
+    const date1 = new Date(d1);
+    const date2 = new Date(d2);
 
-  const startOfWeek = (date: Date) => {
-    const diff = (date.getDay() + 7 - weekStartsOn) % 7;
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    start.setDate(date.getDate() - diff);
-    return start;
-  };
+    const startOfWeek = (date: Date) => {
+        const diff = (date.getDay() + 7 - weekStartsOn) % 7;
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(date.getDate() - diff);
+        return start;
+    };
 
-  const s1 = startOfWeek(date1);
-  const s2 = startOfWeek(date2);
+    const s1 = startOfWeek(date1);
+    const s2 = startOfWeek(date2);
 
-  return s1.getTime() === s2.getTime();
+    return s1.getTime() === s2.getTime();
 }
